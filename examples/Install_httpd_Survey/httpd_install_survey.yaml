@@ -1,0 +1,44 @@
+---
+- hosts: all
+  gather_facts: yes
+  become: yes
+  become_method: sudo
+  vars:
+   httpd_packages:
+    - httpd
+    - httpd-devel
+  tasks:
+
+  - name: 0. RedHat | Check if firewalld is running
+    command: systemctl is-active firewalld
+    register: firewalld_result
+    changed_when: False
+    ignore_errors: True  # rc is 3 when firewalld is stopped
+    when: ansible_os_family == "RedHat" and ansible_distribution_major_version == "7"
+    tags: firewalld_status
+
+  - name: 1. RedHat | Yum install httpd
+    yum:
+      name: '{{ httpd_packages }}'
+      state: installed
+    when: ansible_os_family == "RedHat"
+    tags: httpd_rhel
+
+  - name: Ensure latest index.html is present
+    template:
+      src: templates/index.html.j2
+      dest: /var/www/html/index.html 
+
+  - name: 2. Redhat | Ensure httpd is started and enabled
+    service:
+      name: httpd
+      state: started
+      enabled: yes
+  
+  - name: 3. RedHat | Allow http Protocol
+    firewalld:
+      service: http
+      permanent: yes
+      state: enabled
+      immediate: yes
+    when: ansible_os_family == "RedHat" and firewalld_result.stdout == "active"
