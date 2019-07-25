@@ -1,0 +1,78 @@
+AWX Installation Steps
+
+# SELinux
+yum -y install policycoreutils-python
+semanage port -a -t http_port_t -p tcp 8050
+semanage port -a -t http_port_t -p tcp 8051
+semanage port -a -t http_port_t -p tcp 8052
+setsebool -P httpd_can_network_connect 1
+
+# Firewalld (NOT RECOMMENDED IN PRODUCTION ENVIROMENT)
+systemctl stop firewalld
+systemctl disable firewalld
+
+# Repos
+yum -y install epel-release centos-release-scl centos-release-scl-rh wget
+
+# AWX repo
+wget -O /etc/yum.repos.d/ansible-awx.repo https://copr.fedorainfracloud.org/coprs/mrmeee/ansible-awx/repo/epel-7/mrmeee-ansible-awx-epel-7.rep
+
+# RabbitMQ and Erlang
+
+echo "[bintraybintray-rabbitmq-rpm] 
+name=bintray-rabbitmq-rpm 
+baseurl=https://dl.bintray.com/rabbitmq/rpm/rabbitmq-server/v3.7.x/el/7/
+gpgcheck=0 
+repo_gpgcheck=0 
+enabled=1" > /etc/yum.repos.d/rabbitmq.repo
+
+
+echo "[bintraybintray-rabbitmq-erlang-rpm] 
+name=bintray-rabbitmq-erlang-rpm 
+baseurl=https://dl.bintray.com/rabbitmq-erlang/rpm/erlang/21/el/7/
+gpgcheck=0 
+repo_gpgcheck=0 
+enabled=1" > /etc/yum.repos.d/rabbitmq-erlang.repo
+
+# Installation:
+
+01- Install RabbitMQ
+yum -y install rabbitmq-server
+systemctl enable rabbitmq-server && systemctl start rabbitmq-server
+
+02- Install PostgreSQL, Initialize db && create awx db and user
+yum install -y rh-postgresql10
+scl enable rh-postgresql10 "postgresql-setup initdb"
+systemctl start rh-postgresql10-postgresql.service && systemctl enable rh-postgresql10-postgresql.service
+scl enable rh-postgresql10 "su postgres -c \"createuser -S awx\""
+scl enable rh-postgresql10 "su postgres -c \"createdb -O awx awx\""
+
+03- Install memcached
+yum install -y memcached
+systemctl enable memcached && systemctl start memcached
+
+04- Install NGINX & configure nginx
+yum -y install nginx
+cp -p /etc/nginx/nginx.conf{,.org}
+wget -O /etc/nginx/nginx.conf https://raw.githubusercontent.com/sunilsankar/awx-build/master/nginx.conf
+systemctl enable nginx && systemctl start nginx
+
+05- Install Python and dependcies 
+yum -y install rh-python36
+yum -y install --disablerepo='*' --enablerepo='mrmeee-ansible-awx, base' -x *-debuginfo rh-python36*
+
+06- Install AWX-RPM:
+yum install -y ansible-awx
+
+07- Initialize AWX
+sudo -u awx scl enable rh-python36 rh-postgresql10 "awx-manage migrate"
+echo "from django.contrib.auth.models import User; User.objects.create_superuser('admin', 'root@localhost', 'password')" | sudo -u awx scl enable rh-python36 rh-postgresql10 "awx-manage shell"
+sudo -u awx scl enable rh-python36 rh-postgresql10 "awx-manage create_preload_data" # Optional Sample Configuration
+sudo -u awx scl enable rh-python36 rh-postgresql10 "awx-manage provision_instance --hostname=$(hostname)"
+sudo -u awx scl enable rh-python36 rh-postgresql10 "awx-manage register_queue --queuename=tower --hostnames=$(hostname)"
+
+systemctl enable awx
+systemctl start awx
+
+
+
