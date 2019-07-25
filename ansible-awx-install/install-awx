@@ -1,6 +1,6 @@
 AWX Installation Steps
 ######################
-By Waderni Lotfi
+#  By Waderni Lotfi
 ######################
 # SELinux
 yum -y install policycoreutils-python
