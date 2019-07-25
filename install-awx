@@ -54,7 +54,7 @@ systemctl enable memcached && systemctl start memcached
 04- Install NGINX & configure nginx
 yum -y install nginx
 cp -p /etc/nginx/nginx.conf{,.org}
-wget -O /etc/nginx/nginx.conf https://raw.githubusercontent.com/sunilsankar/awx-build/master/nginx.conf
+wget -O /etc/nginx/nginx.conf https://raw.githubusercontent.com/faudeltn/AnsibleTower-awx/master/ansible-awx-install/nginx.conf
 systemctl enable nginx && systemctl start nginx
 
 05- Install Python and dependcies 
