@@ -1,5 +1,5 @@
 AWX Installation Steps
-
+By Waderni Lotfi
 # SELinux
 yum -y install policycoreutils-python
 semanage port -a -t http_port_t -p tcp 8050
