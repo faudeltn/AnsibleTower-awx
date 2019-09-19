@@ -18,7 +18,17 @@ yum -y install epel-release wget
 yum -y install centos-release-scl centos-release-scl-rh
 
 # AWX Repository:
-wget -O /etc/yum.repos.d/ansible-awx.repo https://copr.fedorainfracloud.org/coprs/mrmeee/ansible-awx/repo/epel-7/mrmeee-ansible-awx-epel-7.rep
+
+echo "[mrmeee-ansible-awx]
+name=Copr repo for ansible-awx owned by mrmeee
+baseurl=https://copr-be.cloud.fedoraproject.org/results/mrmeee/ansible-awx/epel-7-$basearch/
+type=rpm-md
+skip_if_unavailable=True
+gpgcheck=1
+gpgkey=https://copr-be.cloud.fedoraproject.org/results/mrmeee/ansible-awx/pubkey.gpg
+repo_gpgcheck=0
+enabled=1
+enabled_metadata=1" > /etc/yum.repos.d/ansible-awx.repo
 
 # RabbitMQ and Erlang Repositories:
 
