@@ -14,7 +14,7 @@ systemctl stop firewalld
 systemctl disable firewalld
 
 # Epel / Software Collections Repositories:
-yum -y install epel-release wget 
+yum -y install epel-release wget
 yum -y install centos-release-scl centos-release-scl-rh
 
 # AWX Repository:
@@ -39,8 +39,8 @@ enabled=1" > /etc/yum.repos.d/rabbitmq-erlang.repo
 
 # Installation:
 
-01- Install RabbitMQ:
-yum -y install rabbitmq-server
+01- Install RabbitMQ and Git:
+yum -y install rabbitmq-server rh-git29
 systemctl enable rabbitmq-server && systemctl start rabbitmq-server
 
 02- Install PostgreSQL, Initialize db && create awx db and user:
