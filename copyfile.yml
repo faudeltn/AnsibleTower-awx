@@ -1,0 +1,49 @@
+---
+- hosts: all
+  #vars:
+  #  - remote_password: 'HASHED_PASSWORD'
+  #  - ssh_user: ansibleadm
+  gather_facts: yes
+  #remote_user: root
+
+  tasks:
+
+  - name: 1. Find File
+    find:
+      paths: /var/www
+      patterns: "sureroute.html"
+      file_type: file
+      recurse: yes
+    register: files_matched
+
+  #- debug:
+  #    msg: "{{ files_matched.files[0].path }}"
+
+  #- name: list log files
+  #  debug: var=item.path
+  #  with_items: "{{ files_matched.files }}"
+
+  #- name: list path files
+  #  debug:
+  #    msg: "{{ item.path }}"
+  #  with_items: "{{ files_matched.files }}"
+
+  - name: 2. Backup File
+    copy:
+      src: "{{ item.path }}"
+      dest: "{{ item.path }}_{{ansible_date_time.date}}OLD"
+      owner: root
+      group: root
+      mode: '0644'
+      remote_src: yes
+    with_items: "{{ files_matched.files }}"
+
+  - name: 3. Copy file
+    copy:
+      src: "./sureoute.html"
+      dest: "{{ item.path }}"
+      #backup: yes
+      owner: root
+      group: root
+      mode: '0644'
+    with_items: "{{ files_matched.files }}"
